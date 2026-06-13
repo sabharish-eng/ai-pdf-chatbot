@@ -8,15 +8,12 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+import os
 
 load_dotenv()
 
-st.set_page_config(
-    page_title="My AI Chatbot",
-    page_icon="🤖"
-)
-
-st.title("🤖 My  AI friend ")
+st.set_page_config(page_title="My AI Friend", page_icon="🤖")
+st.title("🤖 My AI Friend")
 st.write("Upload a PDF and ask anything about it!")
 
 uploaded_file = st.file_uploader("Upload your PDF", type="pdf")
@@ -36,11 +33,13 @@ if uploaded_file:
         chunks = splitter.split_documents(pages)
 
         embeddings = HuggingFaceEmbeddings(
-    model_name="all-MiniLM-L6-v2",
-    model_kwargs={'device': 'cpu'},
-    encode_kwargs={'normalize_embeddings': False}
-)
-        db = FAISS.from_documents(chunks, embeddings)
+            model_name="all-MiniLM-L6-v2",
+            model_kwargs={'device': 'cpu'},
+            encode_kwargs={'normalize_embeddings': True}
+        )
+
+        texts = [chunk.page_content for chunk in chunks]
+        db = FAISS.from_texts(texts, embeddings)
         retriever = db.as_retriever()
 
     llm = ChatGroq(
