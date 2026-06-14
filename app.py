@@ -1,5 +1,5 @@
 import streamlit as st
-from dotenv import load_dotenv
+import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -8,13 +8,14 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
-import os
 
-load_dotenv()
-import streamlit as st
-if "GROQ_API_KEY" in st.secrets:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-
+# Get API key from Streamlit Secrets or .env
+try:
+    groq_api_key = st.secrets["GROQ_API_KEY"]
+except:
+    from dotenv import load_dotenv
+    load_dotenv()
+    groq_api_key = os.getenv("GROQ_API_KEY")
 
 st.set_page_config(page_title="My AI Friend", page_icon="🤖")
 st.title("🤖 My AI Friend")
@@ -48,7 +49,8 @@ if uploaded_file:
 
     llm = ChatGroq(
         model="llama-3.3-70b-versatile",
-        temperature=0
+        temperature=0,
+        groq_api_key=groq_api_key
     )
 
     template = ChatPromptTemplate.from_template("""
